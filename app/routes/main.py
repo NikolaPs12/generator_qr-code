@@ -15,79 +15,74 @@ def generate_qr_code(data, filename):
     )
     qr.add_data(data)
     qr.make(fit=True)
-    
+
     img = qr.make_image(fill_color="black", back_color="white")
-    
-    # Путь относительно корня приложения
+
     qr_folder = os.path.join(current_app.root_path, 'static', 'qr-codes')
     os.makedirs(qr_folder, exist_ok=True)
-    
+
     img_path = os.path.join(qr_folder, f"{filename}.png")
     img.save(img_path)
-    
-    return filename  # Возвращаем только имя файла без пути"
+
+    return filename  # имя файла без пути
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
     pdf_form = UploadPDFForm()
     image_form = UploadImageForm()
-    
-    # Обработка загрузки PDF и генерация QR-кода
+
     if pdf_form.validate_on_submit():
         file = pdf_form.pdf_file.data
         filename = secure_filename(file.filename)
-        upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'pdfs')
+
+        # Путь для загрузки PDF в безопасную папку
+        upload_folder = os.path.join('/tmp', 'uploads', 'pdfs')
         os.makedirs(upload_folder, exist_ok=True)
         file_path = os.path.join(upload_folder, filename)
         file.save(file_path)
-        
-        # Генерируем QR-код для загруженного PDF
-        # Создаем URL для доступа к PDF файлу
+
+        # Проверка: файл реально сохранился?
+        if not os.path.exists(file_path):
+            flash('Ошибка при сохранении PDF!', 'danger')
+            return redirect(url_for('main.index'))
+
+        # Генерация QR-кода на внешний URL PDF-файла
         pdf_url = url_for('main.serve_pdf', filename=filename, _external=True)
-        qr_filename = os.path.splitext(filename)[0]  # Убираем расширение .pdf
-        qr_path = generate_qr_code(pdf_url, qr_filename)
-        
+        qr_filename = os.path.splitext(filename)[0]
+        generate_qr_code(pdf_url, qr_filename)
+
         flash('PDF успешно загружен и QR-код сгенерирован!', 'success')
-        # Перенаправляем на страницу с QR-кодом
         return redirect(url_for('main.show_qr', filename=qr_filename))
 
-    # Обработка загрузки изображения для QR (оставьте как есть)
     if image_form.validate_on_submit():
         file = image_form.image_file.data
         filename = secure_filename(file.filename)
-        upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'images')
+        upload_folder = os.path.join('/tmp', 'uploads', 'images')
         os.makedirs(upload_folder, exist_ok=True)
         file.save(os.path.join(upload_folder, filename))
-        flash('Изображение загружено! Генерируем QR...', 'success')
+        flash('Изображение загружено!', 'success')
         return redirect(url_for('main.index'))
 
-    return render_template('main/index.html', 
-                         pdf_form=pdf_form,
-                         image_form=image_form)
+    return render_template('main/index.html',
+                           pdf_form=pdf_form,
+                           image_form=image_form)
 
 @main.route('/qr/<filename>')
 def show_qr(filename):
     qr_folder = os.path.join(current_app.root_path, 'static', 'qr-codes')
     qr_path = os.path.join(qr_folder, f"{filename}.png")
-    
-    # Проверяем существование файла
-    if not os.path.exists(qr_path):
-        flash('QR-код не найден!', 'error')
-        return redirect(url_for('main.index'))
-    
-    # Формируем правильный URL для изображения
-    qr_image_url = url_for('static', filename=f'qr-codes/{filename}.png')
-    
-    return render_template('main/qr_display.html', 
-                         qr_image_url=qr_image_url,
-                         filename=filename)
 
-@main.route('/serve-qr/<filename>')
-def serve_qr(filename):
-    qr_folder = os.path.join(current_app.root_path, 'static', 'qr-codes')
-    return send_from_directory(qr_folder, filename)
+    if not os.path.exists(qr_path):
+        flash('QR-код не найден!', 'danger')
+        return redirect(url_for('main.index'))
+
+    qr_image_url = url_for('static', filename=f'qr-codes/{filename}.png')
+
+    return render_template('main/qr_display.html',
+                           qr_image_url=qr_image_url,
+                           filename=filename)
 
 @main.route('/serve-pdf/<filename>')
 def serve_pdf(filename):
-    pdf_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'pdfs')
+    pdf_folder = os.path.join('/tmp', 'uploads', 'pdfs')
     return send_from_directory(pdf_folder, filename)
