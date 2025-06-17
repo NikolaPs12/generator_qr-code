@@ -1,0 +1,119 @@
+{% extends "main/base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow" style="background-color: #fff9e6;">
+                <div class="card-header text-center" style="background-color: #ffeb99;">
+                    <h2 class="my-3">Ваш QR-код готов!</h2>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <h4>QR-код для файла: {{ filename }}.pdf</h4>
+                        <p class="text-muted">Отсканируйте этот код для доступа к вашему PDF файлу</p>
+                    </div>
+                    
+                    <!-- Отображение QR-кода -->
+                    <div class="mb-4">
+                        <img src="{{ qr_image_url }}" alt="QR Code" class="img-fluid border rounded shadow" style="max-width: 300px;" onerror="this.style.display='none'; document.getElementById('error-msg').style.display='block';">
+                        <div id="error-msg" style="display: none;" class="alert alert-danger mt-3">
+                            Ошибка загрузки QR-кода. Попробуйте создать новый.
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопки действий -->
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <a href="{{ qr_image_url }}" download class="btn btn-success btn-lg" target="_blank">
+                            📥 Скачать QR-код
+                        </a>
+                        <a href="{{ url_for('main.index') }}" class="btn btn-warning btn-lg">
+                            ➕ Создать новый QR-код
+                        </a>
+                        <button onclick="printQR()" class="btn btn-info btn-lg">
+                            🖨️ Печать QR-кода
+                        </button>
+                    </div>
+                    
+                    <!-- Дополнительная информация -->
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6>Инструкция по использованию:</h6>
+                        <ul class="list-unstyled mb-0 text-start">
+                            <li>• Отсканируйте QR-код любым мобильным устройством</li>
+                            <li>• QR-код откроет прямую ссылку на ваш PDF файл</li>
+                            <li>• Вы можете скачать изображение QR-кода для печати</li>
+                            <li>• QR-код будет работать пока файл находится на сервере</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #qr-print-area, #qr-print-area * {
+        visibility: visible;
+    }
+    #qr-print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+
+<script>
+function printQR() {
+    const printContent = `
+        <div id="qr-print-area" style="text-align: center; padding: 20px;">
+            <h2>QR-код для файла: {{ filename }}.pdf</h2>
+            <img src="{{ qr_image_url }}" style="max-width: 300px; margin: 20px;">
+            <p>Отсканируйте этот код для доступа к PDF файлу</p>
+        </div>
+    `;
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>QR-код для печати</title>
+                <style>
+                    body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+                    img { max-width: 300px; }
+                </style>
+            </head>
+            <body>
+                ${printContent}
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+}
+</script>
+{% endblock %}

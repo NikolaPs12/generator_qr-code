@@ -1,0 +1,105 @@
+{% extends "main/base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Форма для загрузки PDF и генерации QR-кода -->
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow" style="background-color: #fff9e6;">
+                <div class="card-header text-center" style="background-color: #ffeb99;">
+                    <h2 class="my-3">Генератор QR-кодов для PDF</h2>
+                    <p class="mb-0">Загрузите PDF файл и получите QR-код для быстрого доступа</p>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ pdf_form.hidden_tag() }}
+                        <div class="mb-4">
+                            {{ pdf_form.pdf_file.label(class="form-label fs-5") }}
+                            {{ pdf_form.pdf_file(class="form-control form-control-lg") }}
+                            {% if pdf_form.pdf_file.errors %}
+                                <div class="text-danger mt-2">
+                                    {% for error in pdf_form.pdf_file.errors %}
+                                        <small>{{ error }}</small><br>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Поддерживаются только PDF файлы. Максимальный размер файла: 16MB
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            {{ pdf_form.submit_pdf(class="btn btn-warning btn-lg px-5 py-2") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Информационный блок -->
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-8">
+            <div class="card border-0" style="background-color: #f8f9fa;">
+                <div class="card-body">
+                    <h5 class="card-title text-center mb-3">Как это работает?</h5>
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3">
+                                <div class="display-6 text-warning mb-2">📁</div>
+                                <h6>1. Загрузите PDF</h6>
+                                <p class="small text-muted">Выберите PDF файл с вашего устройства</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3">
+                                <div class="display-6 text-warning mb-2">⚡</div>
+                                <h6>2. Генерация QR</h6>
+                                <p class="small text-muted">Автоматически создаем QR-код для вашего файла</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="p-3">
+                                <div class="display-6 text-warning mb-2">📱</div>
+                                <h6>3. Сканируйте</h6>
+                                <p class="small text-muted">Получите быстрый доступ к PDF через QR-код</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.form-control:focus {
+    border-color: #ffc107;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+</style>
+{% endblock %}
