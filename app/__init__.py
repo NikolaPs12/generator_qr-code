@@ -6,7 +6,7 @@ def create_app():
     app = Flask(__name__)
 
     app.config['SECRET_KEY'] = '123456767890'
-    app.config['UPLOAD_FOLDER'] = 'pdfs'
+    app.config['UPLOAD_FOLDER'] = 'pdf-files'
     app.config['QR_CODE_FOLDER'] = os.path.join('static', 'qr-codes')  # Сохраняем в static/qr-codes
     app.config['ALLOWED_EXTENSIONS'] = {'pdf'}
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB максимальный размер файла
