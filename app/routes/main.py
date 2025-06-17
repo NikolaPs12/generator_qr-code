@@ -89,5 +89,5 @@ def serve_qr(filename):
 
 @main.route('/serve-pdf/<filename>')
 def serve_pdf(filename):
-    pdf_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'pdfs')
+    pdf_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'pdf-files/pdfs')
     return send_from_directory(pdf_folder, filename)
